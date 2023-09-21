@@ -17,11 +17,7 @@ public class Main {
             texts[i] = generateText("abc", 3 + random.nextInt(3));
         }
 
-        List<Thread> threadList = new ArrayList<>();
-        threadList.add(countNickname(texts, 3, atomicInteger3));
-        threadList.add(countNickname(texts, 4, atomicInteger4));
-        threadList.add(countNickname(texts, 5, atomicInteger5));
-
+        List<Thread> threadList = countNickname(texts);
         for (Thread thread : threadList) {
             thread.start();
         }
@@ -32,7 +28,6 @@ public class Main {
         System.out.println("Красивых слов с длиной 3: " + atomicInteger3.get() + " шт");
         System.out.println("Красивых слов с длиной 4: " + atomicInteger4.get() + " шт");
         System.out.println("Красивых слов с длиной 5: " + atomicInteger5.get() + " шт");
-
     }
 
     public static String generateText(String letters, int length) {
@@ -44,26 +39,50 @@ public class Main {
         return text.toString();
     }
 
-    public static Thread countNickname(String[] texts, int length, AtomicInteger atomicInteger) throws InterruptedException {
+    public static List<Thread> countNickname(String[] texts) {
 
-        Thread thread = new Thread(() -> {
+        List<Thread> threadList = new ArrayList<>();
+        Thread palindromeCheck = new Thread(() -> {
             for (String str : texts) {
-                if (str.length() == length) {
-                    if (isPalindromeReverseTheString(str)) {
-                        atomicInteger.incrementAndGet();
-                    }
-                    if (isSameСharacters(str)) {
-                        atomicInteger.incrementAndGet();
-                    }
-                    if (isSortedString(str)) {
-                        atomicInteger.incrementAndGet();
-                    }
+                if (isPalindromeReverseTheString(str)) {
+                    incrementCounter(str);
                 }
             }
         });
-        return thread;
+        Thread sameCharCheck = new Thread(() -> {
+            for (String str : texts) {
+                if (isSameСharacters(str)) {
+                    incrementCounter(str);
+                }
+            }
+        });
+        Thread sortedStrCheck = new Thread(() -> {
+            for (String str : texts) {
+                if (isSortedString(str)) {
+                    incrementCounter(str);
+                }
+            }
+        });
+        threadList.add(palindromeCheck);
+        threadList.add(sameCharCheck);
+        threadList.add(sortedStrCheck);
+        return threadList;
     }
 
+    public static void incrementCounter(String text) {
+
+        switch (text.length()) {
+            case (3):
+                atomicInteger3.getAndIncrement();
+                break;
+            case (4):
+                atomicInteger4.getAndIncrement();
+                break;
+            case (5):
+                atomicInteger5.getAndIncrement();
+                break;
+        }
+    }
 
     public static boolean isPalindromeReverseTheString(String text) {
         StringBuilder reverse = new StringBuilder();
